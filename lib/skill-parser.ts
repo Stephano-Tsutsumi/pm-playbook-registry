@@ -1,5 +1,7 @@
 import type { Category, PlaybookInsert } from '@/types';
 
+const VALID_CATEGORIES: Category[] = ['analysis', 'engineering', 'product', 'comms', 'eval'];
+
 export function parseSkillMd(content: string): Partial<PlaybookInsert> {
   const result: Partial<PlaybookInsert> = {};
 
@@ -33,8 +35,23 @@ export function parseSkillMd(content: string): Partial<PlaybookInsert> {
   }
 
   if (body) {
+    const categoryMatch = body.match(/\*\*Category\*\*:\s*(\w+)/);
+    if (categoryMatch && VALID_CATEGORIES.includes(categoryMatch[1] as Category)) {
+      result.category = categoryMatch[1] as Category;
+    }
+
+    const toolMatch = body.match(/\*\*Tool\*\*:\s*([^|*]+)/);
+    if (toolMatch) result.tool = toolMatch[1].trim();
+
+    const contribMatch = body.match(/\*\*Contributor\*\*:\s*([^*\n]+)/);
+    if (contribMatch) result.contributor = contribMatch[1].trim();
+
     result.method = body;
   }
 
   return result;
+}
+
+export function isCompletePlaybook(data: Partial<PlaybookInsert>): data is PlaybookInsert {
+  return !!(data.title && data.category && data.tool && data.contributor && data.description && data.method);
 }

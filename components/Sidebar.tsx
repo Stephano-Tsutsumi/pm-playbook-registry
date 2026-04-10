@@ -1,15 +1,14 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import type { Category, FilterOption, Playbook, PlaybookInsert } from '@/types';
+import type { Category, FilterOption, Playbook } from '@/types';
 import { CATEGORIES, CATEGORY_CONFIG } from '@/lib/categories';
-import { parseSkillMd } from '@/lib/skill-parser';
 
 interface SidebarProps {
   playbooks: Playbook[];
   activeFilter: FilterOption;
   onFilterChange: (f: FilterOption) => void;
-  onSkillUpload: (data: Partial<PlaybookInsert>) => void;
+  onSkillUpload: (file: File) => void;
 }
 
 export default function Sidebar({ playbooks, activeFilter, onFilterChange, onSkillUpload }: SidebarProps) {
@@ -25,37 +24,16 @@ export default function Sidebar({ playbooks, activeFilter, onFilterChange, onSki
     {} as Record<Category, number>
   );
 
-  async function handleFile(file: File) {
-    try {
-      const JSZip = (await import('jszip')).default;
-      const zip = await JSZip.loadAsync(file);
-
-      let skillMd: string | null = null;
-      for (const path of Object.keys(zip.files)) {
-        if (path.endsWith('SKILL.md')) {
-          skillMd = await zip.files[path].async('string');
-          break;
-        }
-      }
-      if (!skillMd) return;
-
-      const parsed = parseSkillMd(skillMd);
-      onSkillUpload(parsed);
-    } catch {
-      // silently fail for invalid files
-    }
-  }
-
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file && file.name.endsWith('.skill')) handleFile(file);
+    if (file && file.name.endsWith('.skill')) onSkillUpload(file);
   }
 
   function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) handleFile(file);
+    if (file) onSkillUpload(file);
     e.target.value = '';
   }
 
