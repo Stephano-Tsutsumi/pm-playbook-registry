@@ -1,5 +1,4 @@
 import { createClient } from '@/utils/supabase/server';
-import { cookies } from 'next/headers';
 import type { PlaybookInsert } from '@/types';
 
 export async function GET(request: Request) {
@@ -8,8 +7,7 @@ export async function GET(request: Request) {
   const category = searchParams.get('category') ?? 'all';
   const sort     = searchParams.get('sort') ?? 'newest';
 
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient();
   let query = supabase.from('playbooks').select('*');
 
   if (q) {
@@ -47,8 +45,7 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Invalid category' }, { status: 400 });
   }
 
-  const cookieStore = await cookies();
-  const supabase = createClient(cookieStore);
+  const supabase = createClient();
   const { data, error } = await supabase
     .from('playbooks')
     .insert(body)
